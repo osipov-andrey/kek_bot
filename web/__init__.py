@@ -84,12 +84,10 @@ async def on_startup(app):
     asyncio.ensure_future(telegram_api_dispatcher.start_polling())
 
 
-if __name__ == '__main__':
+def create_app():
     app = get_new_configured_app(dispatcher=telegram_api_dispatcher, path=WEBHOOK_URL_PATH)
     app.on_startup.append(on_startup)
-    web.run_app(app, host="0.0.0.0", port=os.getenv('PORT'))
-#
-# loop = asyncio.get_event_loop()
-# loop.create_task(get_stikers())
-# loop.create_task(telegram_api_dispatcher.start_polling())
-# loop.run_forever()
+    return app
+
+
+main = create_app()
