@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import random
 from urllib.parse import urljoin
 
@@ -86,7 +87,7 @@ async def on_startup(app):
 if __name__ == '__main__':
     app = get_new_configured_app(dispatcher=telegram_api_dispatcher, path=WEBHOOK_URL_PATH)
     app.on_startup.append(on_startup)
-    web.run_app(app, host="0.0.0.0", port=8080)
+    web.run_app(app, host="0.0.0.0", port=os.getenv('PORT'))
 #
 # loop = asyncio.get_event_loop()
 # loop.create_task(get_stikers())
