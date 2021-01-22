@@ -37,7 +37,7 @@ async def get_stikers():
 
 def custom_filter(message: types.Message):
     words = [
-        "пидр", "пидор", "навальный", "фем", "левак", "байден", "biden", "gay"
+        "пидр", "пидор", "навальный", "фем", "левак", "байден", "biden", "gay", "дела", "аним", "оним", "гейм", "транс", "трап"
     ]
     text = message.html_text.lower()
     for word in words:
