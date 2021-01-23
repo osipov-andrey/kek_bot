@@ -1,45 +1,33 @@
+import aiogram
 import asyncio
 import logging
+import os
 import random
-from urllib.parse import urljoin
+import translators as ts
 
-import aiogram
 from aiogram import types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.webhook import get_new_configured_app
-import translators as ts
 from aiohttp import web
 
 
 logging.basicConfig(
     level=logging.INFO,
     handlers=[
-        # logging.FileHandler(filename="log.log"),
         logging.StreamHandler()
     ],
 )
 
 LOGGER = logging.getLogger(__file__)
 
-API_TOKEN = "1546857864:AAEPBXnsuVVPTJxzrPM8l4g-lQgDLh867T0"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+STIKER_SETS = os.getenv("STIKER_SETS").split(', ')
+WORDS = os.getenv("WORDS").split(', ')
+STIKERS = list()
 
-
-# WEBHOOK_HOST = "https://gentle-brook-78003.herokuapp.com/"
-# WEBHOOK_URL_PATH = '/webhook/' + API_TOKEN
-# WEBHOOK_URL = urljoin(WEBHOOK_HOST, WEBHOOK_URL_PATH)
-
-STIKER_SETS = [
-    "Gachimuchi_pack",
-    "Derpingpack",
-    "Beruhmt"
-]
-bot = aiogram.Bot(token=API_TOKEN)
+bot = aiogram.Bot(token=BOT_TOKEN)
 state_storage = MemoryStorage()
 telegram_api_dispatcher = aiogram.Dispatcher(bot=bot, storage=state_storage)
-
-
-STIKERS = list()
 
 
 def get_with_probability(probability=10):
@@ -68,12 +56,8 @@ async def get_stikers():
 
 
 def custom_filter(message: types.Message):
-    words = [
-        "пидр", "пидор", "навальный", "фем", "левак", "байден", "biden",
-        "gay", "дела", "аним", "оним", "гейм", "транс", "трап", "день настал", "блокир"
-    ]
     text = message.html_text.lower()
-    for word in words:
+    for word in WORDS:
         if word in text:
             return True
     return False
@@ -82,7 +66,7 @@ def custom_filter(message: types.Message):
 @telegram_api_dispatcher.message_handler(custom_filter)
 async def send_stikers(message: types.Message, state: FSMContext):
 
-    if not get_with_probability(50):
+    if not get_with_probability(60):
         return
 
     stiker = random.choice(STIKERS)
@@ -99,7 +83,7 @@ async def send_stikers(message: types.Message, state: FSMContext):
 @telegram_api_dispatcher.message_handler()
 async def translate_to_uk(message: types.Message, state: FSMContext):
 
-    if not get_with_probability():
+    if not get_with_probability(20):
         return
 
     translated = translate(message.html_text)
@@ -112,27 +96,15 @@ async def translate_to_uk(message: types.Message, state: FSMContext):
 
 
 async def on_startup(app):
-    # await bot.delete_webhook()
-    # await bot.set_webhook(WEBHOOK_URL)
     await get_stikers()
     asyncio.ensure_future(telegram_api_dispatcher.start_polling())
 
 
-# def create_app():
-#     app = get_new_configured_app(dispatcher=telegram_api_dispatcher, path=WEBHOOK_URL_PATH)
-#     app.on_startup.append(on_startup)
-#     return app
-
 def create_app():
     app = web.Application()
-    # app = get_new_configured_app(dispatcher=telegram_api_dispatcher, path=WEBHOOK_URL_PATH)
     app.on_startup.append(on_startup)
     return app
 
 
 main = create_app()
 
-# loop = asyncio.get_event_loop()
-# loop.create_task(get_stikers())
-# loop.create_task(telegram_api_dispatcher.start_polling())
-# loop.run_forever()
