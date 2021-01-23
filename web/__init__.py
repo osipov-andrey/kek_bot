@@ -46,17 +46,15 @@ def get_with_probability(probability=10):
     return random.randint(0, 100) <= probability
 
 
-def translate(text, target="uk"):
-    try:
-        new_text = ts.translate_html(
-            text,
-            translator=ts.bing,
-            to_language=target
-        )
-        return new_text
-    except Exception:
-        LOGGER.error("ERROR", exc_info=True)
-        return text
+def translate(text: str, target="uk"):
+    text = text.replace(' ', '|')
+
+    new_text = ts.translate_html(
+        text,
+        translator=ts.google,
+        to_language=target
+    )
+    return new_text.replace('|', ' ')
 
 
 async def get_stikers():
