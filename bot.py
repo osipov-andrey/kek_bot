@@ -8,13 +8,13 @@ import translators as ts
 from aiogram import types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
-from aiohttp import web
 
 
 logging.basicConfig(
     level=logging.INFO,
     handlers=[
-        logging.StreamHandler()
+        # logging.StreamHandler(),
+        logging.FileHandler(filename="log.log")
     ],
 )
 
@@ -95,16 +95,11 @@ async def translate_to_uk(message: types.Message, state: FSMContext):
     await state.reset_state()
 
 
-async def on_startup(app):
+async def startup():
     await get_stikers()
-    asyncio.ensure_future(telegram_api_dispatcher.start_polling())
+    await telegram_api_dispatcher.start_polling()
 
 
-def create_app():
-    app = web.Application()
-    app.on_startup.append(on_startup)
-    return app
-
-
-main = create_app()
-
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.create_task(startup())
