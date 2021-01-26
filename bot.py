@@ -83,7 +83,7 @@ async def send_stikers(message: types.Message, state: FSMContext):
 @telegram_api_dispatcher.message_handler()
 async def translate_to_uk(message: types.Message, state: FSMContext):
 
-    if not get_with_probability(20):
+    if not get_with_probability():
         return
 
     translated = translate(message.html_text)
