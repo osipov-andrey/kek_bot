@@ -100,7 +100,7 @@ async def translate_to_uk(message: types.Message, state: FSMContext):
     await state.reset_state()
 
 
-async def startup():
+async def startup(dp):
     await bot.set_webhook(WEBHOOK_URL)
     await get_stikers()
 
