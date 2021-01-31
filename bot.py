@@ -108,10 +108,9 @@ async def startup():
 if __name__ == '__main__':
     start_webhook(
         dispatcher=telegram_api_dispatcher,
-        webhook_path=WEBHOOK_URL,
+        webhook_path=f"/{BOT_TOKEN}",
         on_startup=startup,
         skip_updates=True,
         host=HOST,
-        port=PORT,
-        route_name="/webhook"
+        port=PORT
     )
