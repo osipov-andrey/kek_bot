@@ -1,6 +1,6 @@
 import aiogram
-import asyncio
-import logging
+# import asyncio
+# import logging
 import os
 import random
 import translators as ts
@@ -8,21 +8,26 @@ import translators as ts
 from aiogram import types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
+from aiogram.utils.executor import start_webhook
 
+# logging.basicConfig(
+#     level=logging.INFO,
+#     handlers=[
+#         # logging.StreamHandler(),
+#         logging.FileHandler(filename="log.log")
+#     ],
+# )
 
-logging.basicConfig(
-    level=logging.INFO,
-    handlers=[
-        # logging.StreamHandler(),
-        logging.FileHandler(filename="log.log")
-    ],
-)
-
-LOGGER = logging.getLogger(__file__)
+# LOGGER = logging.getLogger(__file__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 STIKER_SETS = os.getenv("STIKER_SETS").split(', ')
 WORDS = os.getenv("WORDS").split(', ')
+HOST = "0.0.0.0"
+PORT = os.getenv("PORT")
+HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
+WEBHOOK_URL = f"https://{HEROKU_APP_NAME}.herokuapp.com/{BOT_TOKEN}"
+
 STIKERS = list()
 
 bot = aiogram.Bot(token=BOT_TOKEN)
@@ -96,12 +101,16 @@ async def translate_to_uk(message: types.Message, state: FSMContext):
 
 
 async def startup():
+    await bot.set_webhook(WEBHOOK_URL)
     await get_stikers()
-    await telegram_api_dispatcher.start_polling()
 
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.create_task(startup())
-    loop.run_forever()
-
+    start_webhook(
+        dispatcher=telegram_api_dispatcher,
+        webhook_path=WEBHOOK_URL,
+        on_startup=startup,
+        skip_updates=True,
+        host=HOST,
+        port=PORT,
+    )
