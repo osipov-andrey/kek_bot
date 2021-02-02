@@ -1,0 +1,26 @@
+{
+    "name": "Kek Bot",
+    "description": "Telegram bot with jokes.",
+    "keywords": [
+      "telegram-bot",
+      "python",
+      "humor"
+    ],
+    "website": "https://github.com/osipov-andrey/kek_bot",
+    "repository": "https://github.com/osipov-andrey/kek_bot",
+    "success_url": "https://github.com/osipov-andrey/kek_bot",
+    "env": {
+      "HEROKU_APP_NAME": {
+        "description": "The name of your Heroku app. Yes, again. Just copy-paste it!"
+      },
+      "BOT_TOKEN": {
+        "description": "Your bot's token. Visit https://t.me/BotFather"
+      },
+      "STIKER_SETS": {
+        "description": "Stickers that the bot will send"
+      },
+      "WORDS": {
+        "description": "Trigger-words"
+      }
+    }
+}

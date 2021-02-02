@@ -1,28 +1,25 @@
 import aiogram
-import asyncio
-import logging
 import os
 import random
+
+import httpx
 import translators as ts
 
 from aiogram import types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
+from aiogram.utils.executor import start_webhook
+from aiogram.types import ContentType
 
-
-logging.basicConfig(
-    level=logging.INFO,
-    handlers=[
-        # logging.StreamHandler(),
-        logging.FileHandler(filename="log.log")
-    ],
-)
-
-LOGGER = logging.getLogger(__file__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 STIKER_SETS = os.getenv("STIKER_SETS").split(', ')
 WORDS = os.getenv("WORDS").split(', ')
+HOST = "0.0.0.0"
+PORT = os.getenv("PORT")
+HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
+WEBHOOK_URL = f"https://{HEROKU_APP_NAME}.herokuapp.com/{BOT_TOKEN}"
+
 STIKERS = list()
 
 bot = aiogram.Bot(token=BOT_TOKEN)
@@ -45,6 +42,13 @@ def translate(text: str, target="uk"):
     return new_text.replace('|', ' ')
 
 
+async def get_anek(url: str = "http://rzhunemogu.ru/RandJSON.aspx?CType=1"):
+    async with httpx.AsyncClient() as client:
+        res = await client.get(url)
+        res = res.text[12:-2]  # This API is returning bad JSON
+        return res
+
+
 async def get_stikers():
     global STIKERS
     all_stikers = list()
@@ -53,6 +57,13 @@ async def get_stikers():
         stikers = stikers.stickers
         all_stikers.extend(stikers)
     STIKERS = all_stikers
+
+
+async def get_random_sticker(sticker_set: str):
+    stickers = await bot.get_sticker_set(sticker_set)
+    stickers = stickers.stickers
+    sticker = random.choice(stickers)
+    return sticker.file_id
 
 
 def custom_filter(message: types.Message):
@@ -65,7 +76,8 @@ def custom_filter(message: types.Message):
 
 @telegram_api_dispatcher.message_handler(custom_filter)
 async def send_stikers(message: types.Message, state: FSMContext):
-
+    global STICKER_COUNTER
+    STICKER_COUNTER = 0
     if not get_with_probability(60):
         return
 
@@ -79,29 +91,64 @@ async def send_stikers(message: types.Message, state: FSMContext):
     )
     await state.reset_state()
 
+STICKER_COUNTER = 0
 
-@telegram_api_dispatcher.message_handler()
-async def translate_to_uk(message: types.Message, state: FSMContext):
 
-    if not get_with_probability():
+@telegram_api_dispatcher.message_handler(content_types=ContentType.STICKER)
+async def sticker_observer(message: types.Message, state: FSMContext):
+    answers = ["Сраные стикеры", "Зачем буквы изобретали?", "Налепи себе на одно место стикер"]
+
+    global STICKER_COUNTER
+    if STICKER_COUNTER < 2:
+        STICKER_COUNTER += 1
+        return
+    if not get_with_probability(50):
+        await bot.send_message(text=random.choice(answers), chat_id=message.chat.id)
+        STICKER_COUNTER = 0
         return
 
-    translated = translate(message.html_text)
-    await bot.send_message(
-        reply_to_message_id=message.message_id,
-        chat_id=message.chat.id,
-        text=translated
-    )
+
+@telegram_api_dispatcher.message_handler()
+async def general_jokes(message: types.Message, state: FSMContext):
+    global STICKER_COUNTER
+    STICKER_COUNTER = 0
+
+    if get_with_probability():
+        #  Send joke
+        anek = await get_anek()
+        await bot.send_message(
+            text=f"Свежий анек для тебя, дружище :\n\n {anek}",
+            chat_id=message.chat.id,
+            reply_to_message_id=message.message_id,
+        )
+        await bot.send_sticker(
+            sticker=await get_random_sticker("honka_animated"),
+            chat_id=message.chat.id
+        )
+        return
+
+    if get_with_probability():
+        # Translate to UK
+        translated = translate(message.html_text)
+        await bot.send_message(
+            reply_to_message_id=message.message_id,
+            chat_id=message.chat.id,
+            text=translated
+        )
     await state.reset_state()
 
 
-async def startup():
+async def startup(dp):
+    await bot.set_webhook(WEBHOOK_URL)
     await get_stikers()
-    await telegram_api_dispatcher.start_polling()
 
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.create_task(startup())
-    loop.run_forever()
-
+    start_webhook(
+        dispatcher=telegram_api_dispatcher,
+        webhook_path=f"/{BOT_TOKEN}",
+        on_startup=startup,
+        skip_updates=True,
+        host=HOST,
+        port=PORT
+    )
