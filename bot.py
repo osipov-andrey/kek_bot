@@ -78,7 +78,7 @@ def custom_filter(message: types.Message):
 async def send_stikers(message: types.Message, state: FSMContext):
     global STICKER_COUNTER
     STICKER_COUNTER = 0
-    if not get_with_probability(40):
+    if not get_with_probability(20):
         return
 
     stiker = random.choice(STIKERS)
@@ -102,7 +102,7 @@ async def sticker_observer(message: types.Message, state: FSMContext):
     if STICKER_COUNTER < 2:
         STICKER_COUNTER += 1
         return
-    if not get_with_probability(60):
+    if not get_with_probability(80):
         await bot.send_message(text=random.choice(answers), chat_id=message.chat.id)
         STICKER_COUNTER = 0
         return
@@ -113,7 +113,7 @@ async def general_jokes(message: types.Message, state: FSMContext):
     global STICKER_COUNTER
     STICKER_COUNTER = 0
 
-    if get_with_probability(2):
+    if get_with_probability(1):
         #  Send joke
         anek = await get_anek()
         await bot.send_message(
@@ -127,7 +127,7 @@ async def general_jokes(message: types.Message, state: FSMContext):
         )
         return
 
-    if get_with_probability(2):
+    if get_with_probability(1):
         # Translate to UK
         translated = translate(message.html_text)
         await bot.send_message(
