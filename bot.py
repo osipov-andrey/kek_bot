@@ -102,7 +102,7 @@ async def sticker_observer(message: types.Message, state: FSMContext):
     if STICKER_COUNTER < 2:
         STICKER_COUNTER += 1
         return
-    if not get_with_probability(80):
+    if get_with_probability(80):
         await bot.send_message(text=random.choice(answers), chat_id=message.chat.id)
         STICKER_COUNTER = 0
         return
