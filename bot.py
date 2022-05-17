@@ -78,7 +78,7 @@ def custom_filter(message: types.Message):
 async def send_stikers(message: types.Message, state: FSMContext):
     global STICKER_COUNTER
     STICKER_COUNTER = 0
-    if not get_with_probability(60):
+    if not get_with_probability(50):
         return
 
     stiker = random.choice(STIKERS)
